@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * @file
+ * Contains academy.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function academy_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the academy module.
+    case 'help.page.academy':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('My Awesome Module') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function academy_theme() {
+  return [
+    'academy' => [
+      'render element' => 'children',
+    ],
+  ];
+}
