@@ -90,7 +90,7 @@ class CiccioResource extends ResourceBase {
      */
     public function get($payload) {
         // You must to implement the logic of your REST Resource here.
-        // Use current user after pass authentication kasd todfd a d validate access.
+        // Use current user after pass authentication tofoa osd validate access.
         if (!$this->currentUser->hasPermission('access content')) {
             throw new AccessDeniedHttpException();
         }
