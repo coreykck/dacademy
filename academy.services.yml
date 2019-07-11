@@ -1,0 +1,7 @@
+services:
+  logger.channel.academy:
+    parent: logger.channel_base
+    arguments: ['academy']
+  academy.default:
+    class: Drupal\academy\Service\MoovieNewsService
+    arguments: ['@http_client', '@serializer']

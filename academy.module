@@ -33,3 +33,28 @@ function academy_theme() {
     ],
   ];
 }
+
+/**
+ * Implements hook_form_alter().
+ */
+function academy_form_alter(
+  &$form,
+  \Drupal\Core\Form\FormStateInterface $form_state,
+  $form_id
+) {
+
+  switch ($form_id) {
+    case 'node_article_form':
+      //se utente non ha permesso handle article any country =>
+      if (! \Drupal::currentUser()->hasPermission(
+          'handle article any country'
+        )) {
+        $user = \Drupal\user\Entity\User::load(Drupal::currentUser()->id());
+        $value = $user->field_country->value();
+        $form['field_country']['#access'] = FALSE;
+        $form['field_country']['#default_value'] = $value;
+      }
+
+      break;
+  }
+}
