@@ -122,16 +122,14 @@ class VoteInRoomResource extends ResourceBase {
         }
 
         return new ResourceResponse($id, 404);
-
-
     }
 
   /**
    * @param \Drupal\node\Entity\Node $room
    */
   protected function saveVoteInPosition(\Drupal\node\Entity\Node $room, $user, $vote, $position) {
-    $room->set('field_user', )
-      ->set('field_vote', )
-      ->save();
+    $room->get('field_user')->set($position, $user);
+    $room->get('field_vote')->set($position, $vote);
+    $room->save();
   }
 }
