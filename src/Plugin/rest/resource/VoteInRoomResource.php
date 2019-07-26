@@ -2,13 +2,18 @@
 
 namespace Drupal\academy\Plugin\rest\resource;
 
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountProxyInterface;
+use Drupal\media\OEmbed\ResourceException;
 use Drupal\rest\ModifiedResourceResponse;
 use Drupal\rest\Plugin\ResourceBase;
 use Drupal\rest\ResourceResponse;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Translation\Exception\NotFoundResourceException;
 
 /**
  * Provides a resource to get view modes by entity and bundle.
@@ -29,6 +34,8 @@ class VoteInRoomResource extends ResourceBase {
      * @var \Drupal\Core\Session\AccountProxyInterface
      */
     protected $currentUser;
+
+    protected $entityTypeManager;
 
     /**
      * Constructs a new VoteInRoomResource object.
@@ -52,10 +59,13 @@ class VoteInRoomResource extends ResourceBase {
         $plugin_definition,
         array $serializer_formats,
         LoggerInterface $logger,
-        AccountProxyInterface $current_user) {
+        AccountProxyInterface $current_user,
+        EntityTypeManagerInterface $entityTypeManager
+    ) {
         parent::__construct($configuration, $plugin_id, $plugin_definition, $serializer_formats, $logger);
 
         $this->currentUser = $current_user;
+        $this->entityTypeManager = $entityTypeManager;
     }
 
     /**
@@ -68,7 +78,8 @@ class VoteInRoomResource extends ResourceBase {
             $plugin_definition,
             $container->getParameter('serializer.formats'),
             $container->get('logger.factory')->get('academy'),
-            $container->get('current_user')
+            $container->get('current_user'),
+            $container->get('entity_type.manager')
         );
     }
 
@@ -83,15 +94,44 @@ class VoteInRoomResource extends ResourceBase {
      * @throws \Symfony\Component\HttpKernel\Exception\HttpException
      *   Throws exception expected.
      */
-    public function post($payload) {
-die('asdsa');
+    public function post($id, $payload) {
+
         // You must to implement the logic of your REST Resource here.
         // Use current user after pass authentication to validate access.
         if (!$this->currentUser->hasPermission('access content')) {
             throw new AccessDeniedHttpException();
         }
 
-        return new ModifiedResourceResponse($payload, 200);
+        /** @var \Drupal\node\Entity\Node $room */
+        $room = $this->entityTypeManager->getStorage('node')->load($id);
+        if ($room) {
+          $user = $payload['user'];
+          if ($room->field_user->isEmpty()) {
+            $position = 0;
+          }
+          else {
+            $users = array_column(
+              $room->field_user->getValue(),
+              'value'
+            );
+            $position = array_search($user, $users);
+            $position = $position === FALSE? count($users) : $position;
+          }
+          $this->saveVoteInPosition($room, $user, $payload['vote'], $position);
+          return new ModifiedResourceResponse($payload, 200);
+        }
+
+        return new ResourceResponse($id, 404);
+
+
     }
 
+  /**
+   * @param \Drupal\node\Entity\Node $room
+   */
+  protected function saveVoteInPosition(\Drupal\node\Entity\Node $room, $user, $vote, $position) {
+    $room->set('field_user', )
+      ->set('field_vote', )
+      ->save();
+  }
 }
